@@ -4,10 +4,12 @@
     <string name="titulo">App de SMS</string>
 
     <string name="introducza_numero">Introduzca el número de teléfono del destinatario:</string>
-    <string name="ejemplo_número">Ej. 692949607</string>
+    <string name="ejemplo_número">Ej. +34612345678</string>
 
     <string name="introducza_texto">Introduzca el texto que desee enviar:</string>
     <string name="ejemplo_texto">Ej. Buenos días.</string>
 
     <string name="boton_enviar">Enviar</string>
+
+    <string name="exito">Mensaje enviado con éxito!</string>
 </resources>

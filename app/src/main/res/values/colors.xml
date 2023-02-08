@@ -7,6 +7,6 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-
     <color name="verdeSMS">#33e230</color>
+    <color name="deseleccionado">#4033e230</color>
 </resources>

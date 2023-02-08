@@ -4,11 +4,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -16,9 +25,12 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    //TEXTVIEW
+    //ATRIBUTOS
     EditText etNumero, etMensaje;
     Button btnEnviar;
+
+    //CONSTANTE PERMISOS
+    private static final int SOLICITUD_MANDAR_SMS = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         initReferences();
         setListenersToButtons();
-        declareSMSPermissions();
+
     }
 
     /**
@@ -46,8 +58,6 @@ public class MainActivity extends AppCompatActivity {
         btnEnviar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SmsManager sms = SmsManager.getDefault();
-
                 /**
                  * Comprobar que ambos campos no están vacíos.
                  * Si están vacíos, se muestra el error y no se enviará el mensaje
@@ -56,33 +66,65 @@ public class MainActivity extends AppCompatActivity {
                 if (bothFieldsFilled()){
                     Toast.makeText(MainActivity.this, "Por favor, rellena ambos campos", Toast.LENGTH_SHORT).show();
                 } else {
-                    //Enviar mensaje
-                    sms.sendTextMessage(etNumero.getText().toString(), null, etMensaje.getText().toString(), null, null );
-                    //Texto mensaje enviado con éxito
-                    //Texto de mensaje enviado con éxito
-                    Toast.makeText(MainActivity.this, "SMS Enviado con éxito", Toast.LENGTH_LONG).show();
+
+                    enviarMensaje(etNumero.getText().toString(), etMensaje.getText().toString());
                 }
             }
         });
     }
 
     /**
-     * Método que declara los permisos de mensajes SMS
+     *
+     * @param numTelefono al que se desea enviar un mensaje.
+     * @param mensaje el mensaje que se enviará.
      */
-    private void declareSMSPermissions(){
-        //Si no tiene permisos:
-        if ((ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SEND_SMS))!= (PackageManager.PERMISSION_GRANTED)){
-            //Manda cuadro de diálogo que pide al usuario aceptar el permiso de mandar SMS.
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS}, 1);
+    public void enviarMensaje(String numTelefono, String mensaje) {
+        //Compruebo si tengo permiso
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
+            //Permiso condedido
+            mandarMensaje(numTelefono, mensaje);
+            Toast.makeText(this, getString(R.string.exito), Toast.LENGTH_SHORT).show();
+        } else {
+            //Permiso no condedido
+            solicitarPermiso(Manifest.permission.SEND_SMS, "Debe de activar el permiso de mandar mensajes para poder mandar mensajes.", SOLICITUD_MANDAR_SMS, this);
+        }
+    }
+
+    public void solicitarPermiso(final String permiso, String justificacion, final int requestCode, final Activity activity){
+        //Mostrar solicitud de porque necesito este permiso??
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permiso)){
+            new AlertDialog.Builder(activity)
+                    .setTitle("Solicitud de permiso")
+                    .setMessage(justificacion)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            ActivityCompat.requestPermissions(activity, new String[] {permiso}, requestCode);
+                        }
+                    }).show();
+        } else {
+            //Pedir permiso
+            ActivityCompat.requestPermissions(activity, new String[]{permiso}, requestCode);
         }
     }
 
     /**
-     * Comprueba que ambos campos están rellenados (EditText Número y EditText Mensaje)
-     * Devuelve 'true' si algún campo está vacío
-     * Devuelve 'false' si ambos campos tienen texto
+     *
+     * @param numeroTelefono al que se mandará el mensaje.
+     * @param mensaje el mensaje en sí.
+     */
+    private void mandarMensaje (String numeroTelefono, String mensaje){
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(numeroTelefono, null, mensaje, null, null);
+    }
+
+    /**
+     *
+     * @return true si no está relleno algún campo.
      */
     private boolean bothFieldsFilled(){
         return (etNumero.getText().toString().matches("") || (etMensaje.getText().toString().matches("")));
     }
+
+
 }
